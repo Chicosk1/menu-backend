@@ -12,8 +12,29 @@ export class GuestCheckService {
         @InjectRepository(GuestCheck)
         private readonly guestCheckRepository: Repository<GuestCheck>,
         @InjectRepository(Spot)
-        private readonly spotRepository: Repository<Spot>
+        private readonly spotRepository: Repository<Spot>,
     ) {}
+
+    findOpenedBySpotId(spotId: string): Promise<GuestCheck | null> {
+        return this.guestCheckRepository.findOne({
+        where: {
+            spot: { id: spotId },
+            status: GuestCheckStatus.OPENED,
+        },
+        relations: { spot: true },
+        });
+    }
+
+    async findOrCreateOpened(spotId: string): Promise<GuestCheck> {
+    
+        const opened = await this.findOpenedBySpotId(spotId);
+
+        if (opened) {
+        return opened;
+        }
+
+        return this.create({ spotId });
+    }
 
     async findOne(id: string): Promise<GuestCheck> {
             const guestCheck = await this.guestCheckRepository.findOneBy({ id });
@@ -49,7 +70,7 @@ export class GuestCheckService {
     }
 
     async close(id: string): Promise<GuestCheck> {
-        const guestCheck = await this.guestCheckRepository.findOneBy({ id });
+        const guestCheck = await this.findOne(id);
 
         if (!guestCheck) {
             throw new NotFoundException('Comanda não encontrada');

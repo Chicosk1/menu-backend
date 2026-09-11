@@ -1,6 +1,5 @@
-import { Body, Controller, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
 import { CreateGuestCheckDto } from "./dto/create-guest-check";
-import { UpdateGuestCheckDto } from "./dto/update-guest-check";
 import { GuestCheck } from "./guest-check.entity";
 import { GuestCheckService } from "./guest-check.service";
 
@@ -11,6 +10,14 @@ export class GuestCheckController {
         private readonly guestCheckService: GuestCheckService
     ){}
 
+    @Get(':id')
+    findOne(
+        @Param('id', ParseUUIDPipe)
+        id: string,
+    ): Promise<GuestCheck> {
+        return this.guestCheckService.findOne(id);
+    }
+
     @Post()
     create(
         @Body()
@@ -19,12 +26,10 @@ export class GuestCheckController {
         return this.guestCheckService.create(dto);
     }
 
-    @Patch(':id')
+    @Patch(':id/close')
     close(
         @Param('id', ParseUUIDPipe)
         id: string,
-        @Body()
-        dto: UpdateGuestCheckDto
     ): Promise<GuestCheck> {
         return this.guestCheckService.close(id);
     }
