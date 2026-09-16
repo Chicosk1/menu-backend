@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryModule } from './cases/categories/category.module';
 import { GuestCheckModule } from './cases/guest-check/guest-check.module';
+import { OrdersModule } from './cases/orders/orders.module';
 import { ProductModule } from './cases/products/product.module';
 import { SpotModule } from './cases/spots/spot.module';
 
@@ -43,6 +44,7 @@ import { SpotModule } from './cases/spots/spot.module';
     ProductModule,
     SpotModule,
     GuestCheckModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

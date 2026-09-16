@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/create-orders";
+import { UpdateOrderStatusDto } from "./dto/update-order-status";
 import { Order } from "./entities/orders.entity";
 import { OrderService } from "./orders.service";
 
@@ -16,6 +17,24 @@ export class OrderController {
         dto: CreateOrderDto
     ): Promise<Order> {
         return this.orderService.create(dto);
+    }
+
+    @Get()
+    findAll(): Promise<Order[]> {
+        return this.orderService.findAll();
+    }
+    
+    @Get(':id')
+    findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Order> {
+        return this.orderService.findOne(id);
+    }
+
+    
+    @Patch(':id/status')
+    updateStatus(
+        @Param('id', ParseUUIDPipe) id: string, 
+        @Body() dto: UpdateOrderStatusDto): Promise<Order> {
+        return this.orderService.updateStatus(id, dto);
     }
 
 }

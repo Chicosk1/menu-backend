@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GuestCheckService } from '../guest-check/guest-check.service';
 import { ProductService } from '../products/product.service';
 import { CreateOrderDto, CreateOrderItemDto } from './dto/create-orders';
+import { UpdateOrderStatusDto } from './dto/update-order-status';
 import { OrderItem } from './entities/order-item.entity';
 import { Order, OrderStatus } from './entities/orders.entity';
 
@@ -32,9 +33,8 @@ export class OrderService {
   }
   
   async create(dto: CreateOrderDto): Promise<Order> {
-    const guestCheck = await this.guestCheckService.findOrCreateOpened(
-      dto.spotId,
-    );
+
+    const guestCheck = await this.guestCheckService.findOrCreateOpened(dto.spotId);
 
     const items: OrderItem[] = [];
     let total = 0;
@@ -51,6 +51,40 @@ export class OrderService {
       total,
       items,
     });
+
+    return this.orderRepository.save(order);
+  }
+
+  findAll(): Promise<Order[]> {
+    return this.orderRepository.find({
+      order: { createdAt: 'ASC' }
+    });
+  }
+
+  async findOne(id: string): Promise<Order> {
+    const order = await this.orderRepository.findOneBy({ id });
+
+    if (!order) {
+      throw new NotFoundException('ID do pedido ${id} não encontrado');
+    }
+
+    return order;
+  }
+
+  async updateStatus(id: string, dto: UpdateOrderStatusDto): Promise<Order> {
+    const order = await this.findOne(id);
+    const nextStatus: Record<OrderStatus, OrderStatus | undefined> = {
+      [OrderStatus.NEW]: OrderStatus.PREPARING,
+      [OrderStatus.PREPARING]: OrderStatus.READY,
+      [OrderStatus.READY]: OrderStatus.DELIVERY,
+      [OrderStatus.DELIVERY]: undefined
+    };
+
+    if (nextStatus[order.status] !== dto.status) {
+      throw new BadRequestException('Status inválido');
+    }
+
+    order.status = dto.status;
     return this.orderRepository.save(order);
   }
 }
